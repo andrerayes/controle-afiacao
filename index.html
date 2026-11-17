@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#172b3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Afiação">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Controle de Afiação</title>
+<style>
+:root{--bg:#f3f6f8;--card:#fff;--ink:#172b3a;--muted:#61717d;--line:#dce4e9;--accent:#176b87;--danger:#b42318;--ok:#137547}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#172b3a;color:#fff;padding:20px max(18px,calc((100% - 900px)/2))}
+header h1{font-size:22px;margin:0 0 4px}header p{margin:0;color:#c7d5dd;font-size:14px}
+main{max-width:900px;margin:auto;padding:16px;display:grid;gap:14px}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+button,.tab{border:0;border-radius:10px;padding:12px 15px;font:600 15px system-ui;cursor:pointer}
+.tab{background:#e1e9ee;color:var(--ink)}.tab.active{background:var(--accent);color:white}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 8px #172b3a0a}
+h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:650;color:#43535e;margin-bottom:6px}
+input,select{width:100%;padding:13px;border:1px solid #cbd6dd;border-radius:9px;font:16px system-ui;background:white;color:var(--ink)}
+input:focus,select:focus{outline:2px solid #8cc6d8;border-color:var(--accent)}
+.field{min-width:0}.wide{grid-column:1/-1}
+button.primary{background:var(--accent);color:white;width:100%;margin-top:14px}
+button.secondary{background:#e7eef2;color:var(--ink)}
+button.danger{background:#fff0ef;color:var(--danger)}
+.note{font-size:13px;color:var(--muted);line-height:1.45}.message{margin-top:10px;font-size:14px;font-weight:600}
+.ok{color:var(--ok)}.err{color:var(--danger)}
+.hidden{display:none!important}
+.item{border-top:1px solid var(--line);padding:12px 0}.item:first-child{border-top:0}
+.item-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+
+.bit-heading{display:flex;align-items:center;gap:7px;min-width:0}
+.bit-heading-text{min-width:0}
+.history-toggle{width:34px;height:34px;padding:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--ink);border-radius:8px;flex:0 0 auto}
+.history-toggle:hover{background:#e7eef2}
+.history-toggle svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.code{font-size:18px;font-weight:750}.meta{font-size:13px;color:var(--muted);margin-top:4px}
+.metrics{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:14px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar button{flex:1}
+table{width:100%;border-collapse:collapse;font-size:14px;display:block;overflow-x:auto;white-space:nowrap}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:12px}
+.small{font-size:12px;color:var(--muted)}
+.checkline{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fbfcfd;margin-top:8px;font-size:14px;color:var(--ink)}
+.checkline input{width:19px;height:19px;margin:0;flex:0 0 auto}
+.strong-value{font-weight:800;color:var(--ink)}
+.status-tag{font-size:11px;font-weight:750;padding:5px 8px;border-radius:999px;background:#fff0e5;color:#9a4d00;white-space:nowrap}
+.status-tag.lost{background:#fce8e6;color:#a12622}
+.status-tag.retired{background:#fff0e5;color:#8a4b08}
+.edit-btn{padding:7px 10px;background:#e7eef2;color:var(--ink);font-size:12px;border-radius:8px}
+.action-cell{position:relative;overflow:visible}
+.dots-btn{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:4px;background:#e7eef2;color:var(--ink);border-radius:9px}
+.dots-btn svg,.row-menu svg,.inline-action svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.row-menu{position:fixed;z-index:1000;min-width:176px;padding:5px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px #172b3a24;display:grid;gap:3px}
+.row-menu button{width:100%;display:flex;align-items:center;gap:9px;text-align:left;padding:10px 11px;border-radius:7px;background:#fff;color:var(--ink);font-size:13px}
+.row-menu button:hover{background:#f0f5f7}
+.row-menu button.delete-action{color:var(--danger)}
+.inline-input{min-width:88px;width:100%;max-width:140px;padding:8px 7px;border:1px solid #b9c8d1;border-radius:7px;font-size:13px}
+.inline-bit-input{min-width:92px;max-width:150px;padding:7px 8px;border:1px solid #b9c8d1;border-radius:7px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+.inline-bit-row{align-items:center;gap:10px}
+.inline-bit-actions{display:inline-flex;gap:5px;align-items:center}
+.inline-bit-actions button{padding:7px 9px;font-size:12px;border-radius:8px}
+.inline-bit-actions .save{background:#e8f5ed;color:#12643c}
+.inline-bit-actions .cancel{background:#f1f3f5;color:#42515b}
+.bit-edit-label{font-size:13px;color:var(--muted)}
+.inline-action{padding:7px 9px;background:#e7eef2;color:var(--ink);font-size:12px;border-radius:8px;margin:2px}
+.inline-action.save{background:#e8f5ed;color:#12643c}
+.inline-action.cancel{background:#f1f3f5;color:#42515b}
+.editing-row{background:#f7fafb}
+.editing-banner{padding:10px 12px;background:#eaf4f8;border:1px solid #b9d9e5;border-radius:9px;color:#16566d;font-size:13px;font-weight:650}
+.action-cell{white-space:nowrap}
+#bitEditor{margin:12px 0;padding:14px;background:#f7fafb;border:1px solid var(--line);border-radius:10px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.card{padding:14px}header{padding:17px}.metrics{gap:10px}}
+.backup-banner{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;background:#fff6e5;border:1px solid #f0d28a;border-radius:10px;color:#6b4a00;font-size:14px}
+.backup-banner button{padding:8px 12px;font-size:13px;background:#f0d28a;color:#4a3300}
+</style>
+</head>
+<body>
+<header><h1>Controle de Afiação</h1><p>Cadastro de bits e histórico de afiações · versão 0.9 · uso local no tablet</p></header>
+<main>
+<div id="backupBanner" class="backup-banner hidden"><span id="backupBannerText"></span><button type="button" id="backupNow">Baixar backup agora</button></div>
+<nav>
+<button class="tab active" data-tab="novo">Bit novo</button>
+<button class="tab" data-tab="afiacao">Registrar afiação</button>
+<button class="tab" data-tab="historico">Histórico</button>
+</nav>
+
+<section id="novo" class="card">
+<h2>Cadastrar bit novo</h2>
+<p class="note">A identificação é gerada automaticamente. A numeração reinicia a cada ano: 1F em 2026, 1G em 2027. A marca fica vinculada ao bit.</p>
+<div class="grid">
+<div class="field"><label>Identificação gerada</label><input id="previewId" readonly></div>
+<div class="field"><label>Marca do bit</label><select id="marca"></select></div>
+<div class="field wide"><label>Diâmetro de saída inicial (mm)</label><input id="diamInicial" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Ex.: 89,0"></div>
+</div>
+<button class="primary" id="saveBit">Cadastrar bit</button><div id="newMsg" class="message" aria-live="polite"></div>
+</section>
+
+<section id="afiacao" class="card hidden">
+<h2>Registrar retorno e afiação</h2>
+<div id="editingBanner" class="editing-banner hidden">Editando um registro já salvo. As alterações substituirão os dados anteriores.</div>
+<div class="grid">
+<div class="field wide"><label>Identificação do bit</label><select id="bitSelect"><option value="">Selecione um bit</option></select></div>
+<div class="field"><label>Data em que o operador utilizou o bit</label><input id="dataUso" type="date"></div>
+<div class="field"><label>Marca</label><input id="marcaView" readonly placeholder="Preenchida pelo cadastro"></div>
+<div class="field"><label>Perfuratriz utilizada</label><select id="perfuratriz"></select></div>
+<div class="field"><label>Metros furados neste ciclo (m)</label><input id="metros" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Ex.: 450"></div>
+<div class="field"><label>Diâmetro de chegada (mm)</label><input id="diamChegada" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Ex.: 84,0"></div>
+<div class="field"><label>Diâmetro de saída após afiação (mm)</label><input id="diamSaida" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Ex.: 82,0"></div>
+<div class="field wide">
+<label>Condição do bit</label>
+<label class="checkline"><input id="perdido" type="checkbox"><span><strong>Bit perdido no furo</strong><br><span class="note">Não foi possível recuperar o bit nem medir o diâmetro de chegada.</span></span></label>
+<label class="checkline"><input id="quebrou" type="checkbox"><span><strong>Quebrou</strong><br><span class="note">O bit quebrou e não voltará para uso. A medição de chegada é opcional, se for possível realizá-la.</span></span></label>
+<label class="checkline"><input id="fimVida" type="checkbox"><span><strong>Fim de vida</strong><br><span class="note">O bit chegou ao fim de sua vida útil e não será mais utilizado. A medição de chegada é opcional, se for possível realizá-la.</span></span></label>
+</div>
+</div>
+<p class="note" id="diamHint">Na afiação normal, o diâmetro de chegada deve ser maior que o de saída. A data registrada é somente a data de utilização anotada pelo operador.</p>
+<div id="calc" class="note"></div>
+<button class="primary" id="saveSharpen">Salvar afiação</button><button class="secondary hidden" id="cancelEdit" type="button" style="width:100%;margin-top:8px">Cancelar edição</button><div id="sharpenMsg" class="message" aria-live="polite"></div>
+</section>
+
+<section id="historico" class="card hidden">
+<h2>Bits cadastrados e histórico</h2>
+<div class="field"><label>Pesquisar identificação ou marca</label><input id="search" placeholder="Ex.: 257F ou Sandvik"></div>
+<div id="historyList" style="margin-top:12px"></div>
+<div id="historyFeedback" class="message" aria-live="polite"></div>
+<div class="toolbar" style="margin-top:14px">
+<button class="secondary" id="exportCsv">Exportar CSV</button>
+<button class="secondary" id="backup">Baixar backup</button>
+<button class="secondary" id="restoreBtn">Restaurar backup</button>
+<input id="restoreFile" type="file" accept="application/json" class="hidden">
+</div>
+<p class="small">Os dados ficam salvos neste navegador e neste tablet. Exporte um backup regularmente para não perder os registros se limpar os dados do navegador ou trocar de aparelho. <span id="backupInfo"></span></p>
+</section>
+</main>
+<script>
+const KEY='controleAfiação_v1';
+let db={bits:[],sharpenings:[]};
+try{const saved=localStorage.getItem(KEY);if(saved)db=JSON.parse(saved)}catch(e){}
+if(!Array.isArray(db.bits))db.bits=[];
+if(!Array.isArray(db.sharpenings))db.sharpenings=[];
+const $=id=>document.getElementById(id);
+function uid(){return (typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():`r-${Date.now()}-${Math.random().toString(36).slice(2)}`}
+// Remove o hífen das identificações antigas (257-F -> 257F), nos bits e nos registros vinculados.
+function stripBitHyphens(data){
+ const fix=v=>typeof v==='string'?v.replace(/-/g,''):v;
+ (data.bits||[]).forEach(b=>{b.id=fix(b.id)});
+ (data.sharpenings||[]).forEach(r=>{r.bitId=fix(r.bitId)});
+}
+stripBitHyphens(db);
+// Migração compatível com backups e registros criados nas versões anteriores.
+db.bits.forEach(b=>{if(b.active===undefined)b.active=true});
+db.sharpenings.forEach(r=>{if(!r.rid)r.rid=uid();if(!r.status)r.status='afiado';if(r.status==='inutilizado')r.status='quebrou';if(r.status==='perdido' && r.arrival===undefined)r.arrival=null;if(r.status==='perdido' && r.departure===undefined)r.departure=null});
+const DEFAULT_LISTS={brands:['Sandvik','Alta Performance','Mitsubishi','Cofermin'],rigs:['B2611','B2613','B2615']};
+function ensureLists(){if(!db.lists||typeof db.lists!=='object')db.lists={};['brands','rigs'].forEach(k=>{if(!Array.isArray(db.lists[k]))db.lists[k]=[...DEFAULT_LISTS[k]]})}
+ensureLists();
+function withCurrent(list,value){return value&&!list.includes(value)?[...list,value]:list}
+function fillSelect(sel,items,placeholder,current){const old=current!==undefined?current:sel.value;sel.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent=placeholder;sel.append(o0);withCurrent(items,old).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.append(o)});sel.value=old}
+function fillListSelects(currentRig){fillSelect($('marca'),db.lists.brands,'Selecione a marca');fillSelect($('perfuratriz'),db.lists.rigs,'Selecione a perfuratriz',currentRig)}
+const BACKUP_KEY='controleAfiação_ultimoBackup';
+function markBackup(){try{localStorage.setItem(BACKUP_KEY,new Date().toISOString())}catch(e){}updateBackupInfo()}
+function updateBackupInfo(){let last=null;try{last=localStorage.getItem(BACKUP_KEY)}catch(e){}const d=last?new Date(last):null,days=d?Math.floor((Date.now()-d.getTime())/86400000):null;const info=document.getElementById('backupInfo');if(info)info.textContent=d?`Último backup: ${d.toLocaleDateString('pt-BR')}.`:'Nenhum backup feito ainda.';const banner=document.getElementById('backupBanner');if(!banner)return;const overdue=db.bits.length>0&&(d===null||days>=7);banner.classList.toggle('hidden',!overdue);document.getElementById('backupBannerText').textContent=d===null?'Você ainda não fez backup dos dados.':`Último backup há ${days} dias.`}
+function todayStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
+function persist(){localStorage.setItem(KEY,JSON.stringify(db))}
+function round1(value){return Math.round((Number(value)+Number.EPSILON)*10)/10}
+function formatDiameter(value){return value===null||value===undefined||value===''?'—':round1(value).toFixed(1).replace('.',',')}
+function yearLetter(y){return String.fromCharCode(70+(y-2026));}
+function nextId(){const y=new Date().getFullYear(),letter=yearLetter(y);const nums=db.bits.filter(b=>b.year===y).map(b=>b.number);return `${Math.max(0,...nums)+1}${letter}`}
+function updatePreview(){$('previewId').value=nextId()}
+function compareRecords(a,b){return String(a.date||'').localeCompare(String(b.date||''))||String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.rid||'').localeCompare(String(b.rid||''))}
+function bitRecords(bitId){return db.sharpenings.filter(r=>r.bitId===bitId).sort(compareRecords)}
+function isTerminalStatus(status){return status==='quebrou'||status==='fim_vida'}
+function terminalStatusLabel(status){return status==='fim_vida'?'Fim de vida':'Quebrou'}
+function syncBitActivity(bitId){const bit=db.bits.find(b=>b.id===bitId);if(!bit)return;const rs=bitRecords(bitId);const last=rs[rs.length-1];bit.active=!(last&&isTerminalStatus(last.status));bit.terminalStatus=bit.active?null:last.status}
+// Reavalia bits antigos: eventos de perda no furo não encerram mais o cadastro.
+db.bits.forEach(b=>syncBitActivity(b.id));
+function calculateWear(bit){
+ const map=new Map();let baseline=Number(bit.initialDiameter);let afterLost=false;
+ for(const r of bitRecords(bit.id)){
+  let wear=null,note='';
+  if(r.arrival!==null&&r.arrival!==undefined&&r.arrival!==''&&Number.isFinite(baseline)){
+   const diff=round1(baseline-Number(r.arrival));
+   if(diff>=0){wear=diff;if(afterLost)note='intervalo após perda'}else note='verificar medição';
+  }
+  map.set(r.rid,{wear,note});
+  if(r.status==='perdido')afterLost=true;
+  else if(r.status==='afiado'){
+   if(r.departure!==null&&r.departure!==undefined&&r.departure!=='')baseline=Number(r.departure);
+   afterLost=false;
+  }
+ }
+ return map;
+}
+function showTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['novo','afiacao','historico'].forEach(id=>$(id).classList.toggle('hidden',id!==tab));if(tab==='afiacao')refreshSelect();if(tab==='historico')renderHistory()}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+function refreshSelect(includeInactiveId=null){const s=$('bitSelect'),old=s.value;s.innerHTML='<option value="">Selecione um bit</option>';[...db.bits].filter(b=>b.active!==false||b.id===includeInactiveId).sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true})).forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=`${b.id} · ${b.brand}${b.active===false?` (${terminalStatusLabel(b.terminalStatus)})`:''}`;s.appendChild(o)});if([...s.options].some(o=>o.value===old))s.value=old;updateBrand()}
+function updateBrand(){const b=db.bits.find(x=>x.id===$('bitSelect').value);$('marcaView').value=b?b.brand:''}
+$('bitSelect').addEventListener('change',updateBrand);
+$('saveBit').addEventListener('click',()=>{const brand=$('marca').value.trim(),raw=Number($('diamInicial').value),d=round1(raw),id=nextId(),y=new Date().getFullYear();if(!brand||!$('diamInicial').value||!Number.isFinite(raw)||raw<=0){$('newMsg').textContent='Informe a marca e um diâmetro válido.';$('newMsg').className='message err';return}const number=parseInt(id,10);db.bits.push({id,year:y,number,brand,initialDiameter:d,active:true,createdAt:new Date().toISOString()});persist();$('marca').value='';$('diamInicial').value='';$('newMsg').textContent=`Bit ${id} cadastrado.`;$('newMsg').className='message ok';updatePreview();refreshSelect()});
+function updateConditionFields(){const lost=$('perdido').checked,broke=$('quebrou').checked,endLife=$('fimVida').checked,retired=broke||endLife;$('diamChegada').disabled=lost;$('diamSaida').disabled=lost||retired;if(lost){$('diamChegada').value='';$('diamSaida').value='';$('diamHint').textContent='Bit perdido no furo: não informe diâmetros. O bit permanece disponível no cadastro para novos registros caso seja recuperado.'}else if(broke||endLife){$('diamSaida').value='';$('diamHint').textContent=broke?'Bit quebrou: o diâmetro de chegada é opcional, se for possível medi-lo. O bit ficará bloqueado para novos lançamentos.':'Fim de vida: o diâmetro de chegada é opcional, se for possível medi-lo. O bit ficará bloqueado para novos lançamentos.'}else{$('diamChegada').disabled=false;$('diamSaida').disabled=false;$('diamHint').textContent='Na afiação normal, o diâmetro de chegada deve ser maior que o de saída. A data registrada é somente a data de utilização anotada pelo operador.'}$('saveSharpen').textContent=editingRecordId?'Salvar alterações':(lost||retired)?'Salvar ocorrência':'Salvar afiação';updateCalc()}
+function updateCalc(){const a=Number($('diamChegada').value),b=Number($('diamSaida').value);$('calc').textContent=(!$('perdido').checked&&!$('quebrou').checked&&!$('fimVida').checked&&$('diamChegada').value&&$('diamSaida').value&&a>b)?`Remoção de material na afiação: ${formatDiameter(round1(a-b))} mm`:''}
+function bindConditionCheckbox(id){$(id).addEventListener('change',()=>{if($(id).checked){['perdido','quebrou','fimVida'].filter(other=>other!==id).forEach(other=>$(other).checked=false)}updateConditionFields()})}
+['perdido','quebrou','fimVida'].forEach(bindConditionCheckbox);
+['diamChegada','diamSaida'].forEach(id=>{$(id).addEventListener('input',updateCalc);$(id).addEventListener('blur',()=>{if($(id).value&&Number.isFinite(Number($(id).value)))$(id).value=round1($(id).value).toFixed(1);updateCalc()})});
+$('diamInicial').addEventListener('blur',()=>{if($('diamInicial').value&&Number.isFinite(Number($('diamInicial').value)))$('diamInicial').value=round1($('diamInicial').value).toFixed(1)});
+let editingRecordId=null;
+function resetRecordForm(){editingRecordId=null;$('editingBanner').classList.add('hidden');$('cancelEdit').classList.add('hidden');$('saveSharpen').textContent='Salvar afiação';$('bitSelect').disabled=false;$('dataUso').value='';$('perfuratriz').value='';$('metros').value='';$('diamChegada').value='';$('diamSaida').value='';$('perdido').checked=false;$('quebrou').checked=false;$('fimVida').checked=false;$('sharpenMsg').textContent='';updateConditionFields();refreshSelect()}
+$('cancelEdit').addEventListener('click',resetRecordForm);
+function openEditRecord(rid){const r=db.sharpenings.find(x=>x.rid===rid);if(!r)return;editingRecordId=rid;showTab('afiacao');refreshSelect(r.bitId);$('bitSelect').value=r.bitId;$('bitSelect').disabled=true;updateBrand();$('dataUso').value=r.date||'';fillListSelects(r.rig||'');$('perfuratriz').value=r.rig||'';$('metros').value=r.meters??'';$('diamChegada').value=r.arrival??'';$('diamSaida').value=r.departure??'';$('perdido').checked=r.status==='perdido';$('quebrou').checked=r.status==='quebrou'||r.status==='inutilizado';$('fimVida').checked=r.status==='fim_vida';$('editingBanner').classList.remove('hidden');$('cancelEdit').classList.remove('hidden');updateConditionFields();$('saveSharpen').textContent='Salvar alterações';$('sharpenMsg').textContent='';window.scrollTo({top:0,behavior:'smooth'})}
+$('saveSharpen').addEventListener('click',()=>{
+ const bit=db.bits.find(b=>b.id===$('bitSelect').value),date=$('dataUso').value,rig=$('perfuratriz').value,meters=Number($('metros').value),lost=$('perdido').checked,broke=$('quebrou').checked,endLife=$('fimVida').checked,retired=broke||endLife,rawA=$('diamChegada').value,rawS=$('diamSaida').value,a=rawA?round1(rawA):null,s=rawS?round1(rawS):null;
+ let msg='';if(!bit)msg='Selecione um bit.';else if(!editingRecordId&&bit.active===false)msg='Este bit já teve sua vida útil encerrada e não pode receber novos registros.';else if(!date)msg='Informe a data em que o operador utilizou o bit.';else if(date>todayStr())msg='A data de utilização não pode ser futura.';else if(!rig)msg='Selecione a perfuratriz utilizada.';else if(!$('metros').value||!Number.isFinite(meters)||meters<=0)msg='Informe os metros furados neste ciclo.';else if(!lost&&!retired&&(!rawA||!rawS||a<=0||s<=0))msg='Informe os dois diâmetros.';else if(!lost&&!retired&&a<=s)msg='Inconsistência: o diâmetro de chegada precisa ser maior que o de saída.';else if(retired&&rawA&&(!Number.isFinite(a)||a<=0))msg='Se informar o diâmetro de chegada, ele precisa ser maior que zero.';
+ if(msg){$('sharpenMsg').textContent=msg;$('sharpenMsg').className='message err';return}
+ if(db.sharpenings.some(r=>r.bitId===bit.id&&r.date===date&&r.rig===rig&&r.rid!==editingRecordId)&&!confirm('Já existe um registro deste bit nesta data e perfuratriz. Salvar mesmo assim?'))return;
+ const wasEditing=!!editingRecordId;const status=lost?'perdido':broke?'quebrou':endLife?'fim_vida':'afiado';const values={date,rig,meters,arrival:lost?null:a,departure:(lost||retired)?null:s,removed:(!lost&&!retired)?round1(a-s):null,status};
+ if(editingRecordId){const existing=db.sharpenings.find(r=>r.rid===editingRecordId);Object.assign(existing,values)}else{db.sharpenings.push({rid:uid(),bitId:bit.id,...values,createdAt:new Date().toISOString()})}
+ syncBitActivity(bit.id);persist();const savedId=bit.id;resetRecordForm();$('sharpenMsg').textContent=wasEditing?`Registro do bit ${savedId} atualizado.`:status==='perdido'?`Ciclo do bit ${savedId} registrado como perdido no furo. Ele continua disponível caso seja recuperado.`:status==='quebrou'?`Bit ${savedId} registrado como Quebrou e bloqueado para novos lançamentos.`:status==='fim_vida'?`Bit ${savedId} registrado como Fim de vida e bloqueado para novos lançamentos.`:`Afiação do bit ${savedId} registrada.`;$('sharpenMsg').className='message ok';
+});
+let inlineEditingId=null;
+function svgIcon(kind){
+ const icons={
+  more:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
+  chevronDown:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+  chevronUp:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>',
+  save:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>',
+  cancel:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>'
+ };
+ return icons[kind]||'';
+}
+function makeInlineInput(type,field,value,step=''){
+ const input=document.createElement('input');input.type=type;input.className='inline-input';input.dataset.field=field;
+ if(step)input.step=step;
+ if(type==='number'){input.min='0';input.inputMode='decimal'}
+ input.value=value===null||value===undefined?'':value;
+ if(type==='date')input.max=todayStr();
+ return input;
+}
+function makeInlineSelect(field,value,options){
+ const select=document.createElement('select');select.className='inline-input';select.dataset.field=field;
+ options.forEach(([v,label])=>{const o=document.createElement('option');o.value=v;o.textContent=label;select.append(o)});
+ select.value=value;return select;
+}
+function updateInlineCondition(row){
+ const status=row.querySelector('[data-field="status"]').value;
+ const arrival=row.querySelector('[data-field="arrival"]');
+ const departure=row.querySelector('[data-field="departure"]');
+ arrival.disabled=status==='perdido';departure.disabled=status==='perdido'||isTerminalStatus(status);
+ if(status==='perdido'){arrival.value='';departure.value=''}
+ else if(isTerminalStatus(status))departure.value='';
+ }
+function showHistoryFeedback(message,type='ok'){
+ const el=$('historyFeedback');el.textContent=message;el.className=`message ${type}`;
+}
+function saveInlineRecord(rid,bitId,row){
+ const r=db.sharpenings.find(x=>x.rid===rid);if(!r)return;
+ const date=row.querySelector('[data-field="date"]').value;
+ const rig=row.querySelector('[data-field="rig"]').value;
+ const metersRaw=row.querySelector('[data-field="meters"]').value;
+ const meters=Number(metersRaw);
+ const status=row.querySelector('[data-field="status"]').value;
+ const arrivalRaw=row.querySelector('[data-field="arrival"]').value;
+ const departureRaw=row.querySelector('[data-field="departure"]').value;
+ const arrival=arrivalRaw?round1(arrivalRaw):null;
+ const departure=departureRaw?round1(departureRaw):null;
+ let error='';
+ if(!date)error='Informe a data de utilização.';
+ else if(date>todayStr())error='A data de utilização não pode ser futura.';
+ else if(!rig)error='Selecione a perfuratriz.';
+ else if(!metersRaw||!Number.isFinite(meters)||meters<=0)error='Informe uma metragem válida maior que zero.';
+ else if(status==='afiado'&&(!arrivalRaw||!departureRaw||arrival<=0||departure<=0))error='Na afiação normal, informe os dois diâmetros.';
+ else if(status==='afiado'&&arrival<=departure)error='O diâmetro de chegada precisa ser maior que o de saída.';
+ else if(isTerminalStatus(status)&&arrivalRaw&&(!Number.isFinite(arrival)||arrival<=0))error='O diâmetro de chegada deve ser maior que zero.';
+ if(error){showHistoryFeedback(error,'err');return}
+ if(db.sharpenings.some(x=>x.bitId===bitId&&x.date===date&&x.rig===rig&&x.rid!==rid)&&!confirm('Já existe um registro deste bit nesta data e perfuratriz. Salvar mesmo assim?'))return;
+ Object.assign(r,{date,rig,meters,status,arrival:status==='perdido'?null:arrival,departure:status==='afiado'?departure:null,removed:status==='afiado'?round1(arrival-departure):null});
+ syncBitActivity(bitId);persist();inlineEditingId=null;renderHistory();refreshSelect();showHistoryFeedback(`Registro do bit ${bitId} atualizado.`,'ok');
+}
+function deleteRecord(rid,bitId){
+ const record=db.sharpenings.find(r=>r.rid===rid);if(!record)return;
+ if(!confirm(`Apagar o registro de ${bitId} do dia ${formatDate(record.date)}? Esta ação não pode ser desfeita.`))return;
+ db.sharpenings=db.sharpenings.filter(r=>r.rid!==rid);syncBitActivity(bitId);persist();inlineEditingId=null;renderHistory();refreshSelect();showHistoryFeedback(`Registro de ${bitId} apagado.`,'ok');
+}
+let inlineEditingBitId=null;
+const expandedBitIds=new Set();
+function makeInlineBitBrand(value){
+ const select=document.createElement('select');select.className='inline-bit-input';select.dataset.bitField='brand';
+ withCurrent(db.lists.brands,value).forEach(label=>{const option=document.createElement('option');option.value=label;option.textContent=label;select.append(option)});
+ select.value=value;return select;
+}
+function makeInlineBitDiameter(value){
+ const input=document.createElement('input');input.type='number';input.inputMode='decimal';input.min='0';input.step='0.1';input.className='inline-bit-input';input.dataset.bitField='diameter';input.value=Number(value).toFixed(1);
+ input.addEventListener('blur',()=>{if(input.value&&Number.isFinite(Number(input.value)))input.value=round1(input.value).toFixed(1)});
+ return input;
+}
+function saveInlineBit(bitId,row){
+ const bit=db.bits.find(b=>b.id===bitId);if(!bit)return;
+ const brand=row.querySelector('[data-bit-field="brand"]').value;
+ const raw=row.querySelector('[data-bit-field="diameter"]').value;
+ const diameter=Number(raw);
+ if(!brand||!raw||!Number.isFinite(diameter)||diameter<=0){showHistoryFeedback('Informe uma marca e um diâmetro inicial válido.','err');return}
+ bit.brand=brand;bit.initialDiameter=round1(diameter);persist();inlineEditingBitId=null;renderHistory();refreshSelect();showHistoryFeedback(`Cadastro do bit ${bitId} atualizado.`,'ok');
+}
+function renderHistory(){
+ const q=$('search').value.trim().toLowerCase().replace(/-/g,''),list=$('historyList');list.innerHTML='';
+ const bits=db.bits.filter(b=>b.id.toLowerCase().includes(q)||b.brand.toLowerCase().includes(q));
+ if(!bits.length){list.innerHTML='<p class="note">Nenhum bit encontrado.</p>';return}
+ bits.sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true})).forEach(bit=>{
+  const records=bitRecords(bit.id),wearMap=calculateWear(bit),wrap=document.createElement('div');wrap.className='item';
+  const top=document.createElement('div');top.className='item-head';
+  const name=document.createElement('div');name.className='bit-heading';
+  const isExpanded=expandedBitIds.has(bit.id);
+  const toggle=document.createElement('button');toggle.type='button';toggle.className='history-toggle';
+  toggle.title=isExpanded?'Ocultar registros':'Mostrar registros';toggle.setAttribute('aria-label',toggle.title);
+  toggle.setAttribute('aria-expanded',isExpanded?'true':'false');toggle.innerHTML=svgIcon(isExpanded?'chevronUp':'chevronDown');
+  toggle.addEventListener('click',()=>{if(expandedBitIds.has(bit.id))expandedBitIds.delete(bit.id);else expandedBitIds.add(bit.id);renderHistory()});
+  const headingText=document.createElement('div');headingText.className='bit-heading-text';
+  const code=document.createElement('div');code.className='code';code.textContent=bit.id;
+  const firstUse=records.find(r=>r.date),brandText=document.createElement('div');brandText.className='meta';brandText.textContent=`${bit.brand} · Entrada: ${firstUse?formatDate(firstUse.date):'—'}`;
+  headingText.append(code,brandText);name.append(toggle,headingText);
+  const right=document.createElement('div');right.style.display='flex';right.style.alignItems='center';right.style.gap='8px';right.style.flexWrap='wrap';
+  const count=document.createElement('span');count.className='small';count.textContent=`${records.length} registro(s)`;right.append(count);
+  if(bit.active===false){const tag=document.createElement('span');tag.className='status-tag retired';tag.textContent=terminalStatusLabel(bit.terminalStatus).toUpperCase();right.append(tag)}
+  const editBit=document.createElement('button');editBit.type='button';editBit.className='edit-btn';editBit.textContent=inlineEditingBitId===bit.id?'Editando bit':'Editar bit';editBit.disabled=inlineEditingBitId!==null&&inlineEditingBitId!==bit.id;editBit.addEventListener('click',()=>{inlineEditingBitId=inlineEditingBitId===bit.id?null:bit.id;renderHistory()});right.append(editBit);
+  top.append(name,right);wrap.append(top);
+  const totalMeters=records.reduce((sum,r)=>sum+Number(r.meters||0),0);
+  const metrics=document.createElement('div');metrics.className='metrics';
+  if(inlineEditingBitId===bit.id){
+   metrics.classList.add('inline-bit-row');
+   const brandWrap=document.createElement('span');brandWrap.className='bit-edit-label';brandWrap.append(document.createTextNode('Marca: '),makeInlineBitBrand(bit.brand));
+   const initial=document.createElement('span');initial.className='bit-edit-label';initial.append(document.createTextNode('Diâmetro inicial de saída: '),makeInlineBitDiameter(bit.initialDiameter),document.createTextNode(' mm'));
+   const total=document.createElement('span');total.innerHTML=`Total perfurado registrado: <strong class="strong-value">${totalMeters.toLocaleString('pt-BR')} m</strong>`;
+   const actions=document.createElement('span');actions.className='inline-bit-actions';
+   const saveBit=document.createElement('button');saveBit.type='button';saveBit.className='save';saveBit.textContent='Salvar';saveBit.addEventListener('click',()=>saveInlineBit(bit.id,metrics));
+   const cancelBit=document.createElement('button');cancelBit.type='button';cancelBit.className='cancel';cancelBit.textContent='Cancelar';cancelBit.addEventListener('click',()=>{inlineEditingBitId=null;renderHistory()});
+   actions.append(saveBit,cancelBit);metrics.append(brandWrap,initial,total,actions);
+  }else{
+   const initial=document.createElement('span');initial.innerHTML=`Diâmetro inicial de saída: <strong class="strong-value">${formatDiameter(bit.initialDiameter)} mm</strong>`;
+   const total=document.createElement('span');total.innerHTML=`Total perfurado registrado: <strong class="strong-value">${totalMeters.toLocaleString('pt-BR')} m</strong>`;
+   metrics.append(initial,total);
+  }
+  wrap.append(metrics);
+  if(expandedBitIds.has(bit.id)){
+   if(records.length){
+    const table=document.createElement('table');table.innerHTML='<thead><tr><th>Data de uso</th><th>Perfuratriz</th><th>Metros</th><th>Desgaste na furação</th><th>Chegada</th><th>Saída</th><th>Situação</th><th>Ação</th></tr></thead>';
+   const tbody=document.createElement('tbody');
+   records.forEach(r=>{
+    const w=wearMap.get(r.rid)||{wear:null,note:''},status=r.status||'afiado';
+    const label=status==='perdido'?'Perdido no furo':status==='quebrou'?'Quebrou':status==='fim_vida'?'Fim de vida':'Afiação';
+    const wearText=w.note==='verificar medição'?'Verificar':w.wear===null?'—':`${formatDiameter(w.wear)} mm${w.note==='intervalo após perda'?'*':''}`;
+    const tr=document.createElement('tr');
+    if(inlineEditingId===r.rid){
+     tr.className='editing-row';
+     const dateCell=document.createElement('td');dateCell.append(makeInlineInput('date','date',r.date));tr.append(dateCell);
+     const rigCell=document.createElement('td');rigCell.append(makeInlineSelect('rig',r.rig||'',[['','Selecione'],...withCurrent(db.lists.rigs,r.rig).map(v=>[v,v])]));tr.append(rigCell);
+     const metersCell=document.createElement('td');metersCell.append(makeInlineInput('number','meters',r.meters,'0.1'));tr.append(metersCell);
+     const wearCell=document.createElement('td');wearCell.textContent=wearText;tr.append(wearCell);
+     const arrivalCell=document.createElement('td');arrivalCell.append(makeInlineInput('number','arrival',r.arrival,'0.1'));tr.append(arrivalCell);
+     const departureCell=document.createElement('td');departureCell.append(makeInlineInput('number','departure',r.departure,'0.1'));tr.append(departureCell);
+     const statusCell=document.createElement('td');statusCell.append(makeInlineSelect('status',status,[['afiado','Afiação'],['perdido','Perdido no furo'],['quebrou','Quebrou'],['fim_vida','Fim de vida']]));tr.append(statusCell);
+     const action=document.createElement('td');action.className='action-cell';
+     const save=document.createElement('button');save.type='button';save.className='inline-action save';save.title='Salvar alterações';save.innerHTML=svgIcon('save')+' Salvar';save.addEventListener('click',()=>saveInlineRecord(r.rid,bit.id,tr));
+     const cancel=document.createElement('button');cancel.type='button';cancel.className='inline-action cancel';cancel.title='Cancelar edição';cancel.innerHTML=svgIcon('cancel')+' Cancelar';cancel.addEventListener('click',()=>{inlineEditingId=null;renderHistory()});
+     action.append(save,cancel);tr.append(action);
+     tr.querySelector('[data-field="status"]').addEventListener('change',()=>updateInlineCondition(tr));
+     updateInlineCondition(tr);
+    }else{
+     const vals=[formatDate(r.date),r.rig||'—',`${Number(r.meters||0).toLocaleString('pt-BR')} m`,wearText,formatDiameter(r.arrival),formatDiameter(r.departure),label];
+     vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});
+     const action=document.createElement('td');action.className='action-cell';
+     const more=document.createElement('button');more.type='button';more.className='dots-btn';more.title='Mais ações';more.setAttribute('aria-label','Mais ações');more.setAttribute('aria-expanded','false');more.innerHTML=svgIcon('more');
+     const menu=document.createElement('div');menu.className='row-menu';
+     const edit=document.createElement('button');edit.type='button';edit.innerHTML=svgIcon('edit')+' <span>Editar registro</span>';edit.addEventListener('click',()=>{menu.remove();more.setAttribute('aria-expanded','false');expandedBitIds.add(bit.id);inlineEditingId=r.rid;renderHistory()});
+     const del=document.createElement('button');del.type='button';del.className='delete-action';del.innerHTML=svgIcon('trash')+' <span>Apagar registro</span>';del.addEventListener('click',()=>{menu.remove();more.setAttribute('aria-expanded','false');deleteRecord(r.rid,bit.id)});
+     menu.append(edit,del);
+     more.addEventListener('click',(event)=>{
+      event.preventDefault();event.stopPropagation();
+      const wasOpen=menu.isConnected;
+      document.querySelectorAll('.row-menu').forEach(m=>m.remove());
+      document.querySelectorAll('.dots-btn').forEach(b=>b.setAttribute('aria-expanded','false'));
+      if(!wasOpen){
+       document.body.append(menu);
+       const rect=more.getBoundingClientRect();
+       const menuRect=menu.getBoundingClientRect();
+       const top=rect.bottom+menuRect.height+8>window.innerHeight?Math.max(8,rect.top-menuRect.height-4):rect.bottom+4;
+       const left=Math.max(8,Math.min(rect.left,window.innerWidth-menuRect.width-8));
+       menu.style.top=`${top}px`;menu.style.left=`${left}px`;
+       more.setAttribute('aria-expanded','true');
+      }
+     });
+     action.append(more);tr.append(action);
+    }
+    tbody.append(tr);
+   });
+    table.append(tbody);wrap.append(table);
+    if(wearMapHasGap(wearMap,records)){const note=document.createElement('p');note.className='small';note.textContent='* Após um registro de bit perdido, o desgaste indicado compara a última saída medida com a chegada seguinte. Portanto, pode abranger mais de um ciclo de furação.';wrap.append(note)}
+   }else{const p=document.createElement('div');p.className='meta';p.textContent='Ainda não retornou para afiação.';wrap.append(p)}
+  }
+  list.append(wrap);
+ });
+}
+document.addEventListener('click',event=>{if(!event.target.closest('.row-menu')&&!event.target.closest('.dots-btn')){document.querySelectorAll('.row-menu').forEach(m=>m.remove());document.querySelectorAll('.dots-btn').forEach(b=>b.setAttribute('aria-expanded','false'))}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){document.querySelectorAll('.row-menu').forEach(m=>m.remove());document.querySelectorAll('.dots-btn').forEach(b=>b.setAttribute('aria-expanded','false'))}});
+function wearMapHasGap(wearMap,records){return records.some(r=>{const x=wearMap.get(r.rid);return x&&x.note==='intervalo após perda'})}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function formatDate(s){if(!s)return'—';const [y,m,d]=s.split('-');return `${d}/${m}/${y}`}
+$('search').addEventListener('input',renderHistory);
+function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function doBackup(){download('backup-controle-afiacao.json',JSON.stringify(db,null,2),'application/json');markBackup()}
+$('backup').addEventListener('click',doBackup);$('backupNow').addEventListener('click',doBackup);
+$('restoreBtn').addEventListener('click',()=>$('restoreFile').click());
+$('restoreFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.bits)||!Array.isArray(data.sharpenings))throw Error();if(!confirm('Restaurar substituirá os dados atuais deste tablet. Deseja continuar?'))return;db=data;ensureLists();stripBitHyphens(db);db.bits.forEach(b=>{if(b.active===undefined)b.active=true});db.sharpenings.forEach(r=>{if(!r.rid)r.rid=uid();if(r.status===undefined)r.status='afiado';if(r.status==='inutilizado')r.status='quebrou'});db.bits.forEach(b=>syncBitActivity(b.id));persist();fillListSelects();markBackup();updatePreview();refreshSelect();renderHistory();alert('Backup restaurado.')}catch(err){alert('Arquivo de backup inválido.')}e.target.value=''});
+$('exportCsv').addEventListener('click',()=>{const rows=[['Identificação','Marca','Data de uso','Perfuratriz','Metros furados (m)','Desgaste na furação (mm)','Diâmetro chegada (mm)','Diâmetro saída (mm)','Removido na afiação (mm)','Registro']];db.bits.forEach(b=>{const rs=bitRecords(b.id),wearMap=calculateWear(b);if(!rs.length)rows.push([b.id,b.brand,'','','','','',formatDiameter(b.initialDiameter),'','Cadastro inicial']);rs.forEach(r=>{const status=r.status||'afiado',label=status==='perdido'?'Perdido no furo':status==='quebrou'?'Quebrou':status==='fim_vida'?'Fim de vida':'Afiação',w=wearMap.get(r.rid)||{wear:null,note:''};rows.push([b.id,b.brand,r.date,r.rig??'',r.meters??'',w.wear===null?'':formatDiameter(w.wear)+(w.note==='intervalo após perda'?'*':''),r.arrival===null||r.arrival===undefined?'':formatDiameter(r.arrival),r.departure===null||r.departure===undefined?'':formatDiameter(r.departure),r.removed===null||r.removed===undefined?'':formatDiameter(r.removed),label])})});const csv='\ufeff'+rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');download('controle-afiacao.csv',csv,'text/csv;charset=utf-8')});
+$('dataUso').max=todayStr();
+fillListSelects();updateBackupInfo();
+updatePreview();refreshSelect();updateConditionFields();
+if(location.protocol.startsWith('http')){
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+}
+</script>
+</body></html>
